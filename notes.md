@@ -459,7 +459,7 @@ Can be extended to remove multiples of $2$ and $3$.
 
 ## Diffie Hellman
 
-Given a secury param $L$
+Given a security param $L$
 
 1. Alice finds $(p, g)$ such that len$(p) = L$
 2. Alice sends $(p, g)$ to Bob (Eve sees this)
@@ -477,3 +477,46 @@ $g^{ab}$ is the **shared secret** and it believed that it is hard for Eve to fin
 3. Alice and Bob compute $s^{-1} \pmod{p}$
 4. Enc$(m) = c = ms \pmod{p}$
 5. Dec$(c) = cs^{1} = mss^{-1} = m \pmod{p}$
+
+## RSA
+
+### Initial Math
+
+Recall **Fermat's Little Theorem**: for prime $p$,
+
+- $a^p \equiv a \pmod{p}$
+- $a^{p-1} \equiv 1 \pmod{p}$ given $a \neq 0$
+
+Then we have $a^m \equiv a^{m \pmod{p-1}} \pmod{p}$. Example showing why this works
+
+$11^{999,999,999} \pmod{107}$
+
+By Fermat's Little Theorem, we have $11^{106} \equiv 1 \pmod{107}$ and we have $999, 999, 999 \equiv 27 \pmod{106}$
+
+Thus $11^{999,999,999} \equiv (11^{106})^k \times 11^{27} \equiv 11^{27} \pmod{107}$
+
+Generalized formula: $a^m \equiv a^{k(p-1)} + r \equiv a^r$
+
+Since $r \equiv m \pmod{p-1}$, we have that $a^m \equiv a^{m \pmod{p -1}} \pmod{p}$
+
+**Important**: for $n$ relative prime to $a$, we have that 
+
+$$a^m \equiv a^{m \pmod{\phi(n)}} \pmod{n}$$
+
+**Example**: $14^{999,999} \pmod{393}$
+
+Note that $\phi(393) = \phi(3) \phi(131) = 2 * 130 = 260$
+
+Thus $14^{999,999} \equiv 14^{999,999 \pmod{260}} \equiv 14^{39} \pmod{393}$
+
+### RSA Steps
+
+1. Alice picks 2 primes $p, q$ of length $L$ and computes $N = pq$
+2. Alice computes $R = \phi(N) = \phi(pq) = (p-1)(q-1)$
+3. Alice picks $e \in \{R/3, \ldots, 2R/3\}$ that is relatively prime to $R$
+4. Alice finds $d$ such that $ed \equiv 1 \pmod{R}$
+5. Alice broadcasts $(N, e)$ so that both Bob and Eve can see it
+6. Bob wants to send $m \in \{1, \ldots, N-1\}$ and broadcasts $m^e \pmod{N}$
+7. Alice receives $m^e \pmod{N}$ and computes
+
+$$(m^e)^d \equiv m^{ed} \equiv m^{ed \pmod{R}} \equiv m \pmod{N}$$
