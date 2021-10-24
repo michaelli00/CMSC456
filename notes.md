@@ -423,7 +423,7 @@ $$DL_{p, g}(y) = x \text{ such that } g^x \equiv y \pmod{p}$$
 
 The problem is suspected to be hard for $g, a \in \{p/3, \ldots, 2p/3\}$. Although there are some tricks:
 
-- If $g$ is a generator of $Z_p^*$ then $g^{(p-1)/2)} \equiv p - 1 \equiv -1$
+- If $g$ is a generator of $Z_p^*$ then $g^{(p-1)/2} \equiv p - 1 \equiv -1$
 - **Example**: $3^x \equiv 92 \pmod{101} \implies 92 \equiv 101 - 9 \equiv (-1)3^2 \equiv 3^{50} * 3^2 \equiv 3^{52}$
 
 A good algorithm would solve this problem in $O(\log(n))$
@@ -520,3 +520,52 @@ Thus $14^{999,999} \equiv 14^{999,999 \pmod{260}} \equiv 14^{39} \pmod{393}$
 7. Alice receives $m^e \pmod{N}$ and computes
 
 $$(m^e)^d \equiv m^{ed} \equiv m^{ed \pmod{R}} \equiv m \pmod{N}$$
+
+## Jevon's Number
+
+$J = 8, 616, 460, 799$
+
+Idea is that $J = x^2 - y^2 = (x-y)(x+y)$. We use $J \equiv 99 \equiv -1 \pmod{100}$ to show that
+
+$x^2 + 1 = y^2 \pmod{100}$ then calculation shows that the only relevant pairs are $(0,0)$ and $(24, 25)$
+
+- $x^2 = 0 \implies x \in \{10, 20, \ldots, 90\}$
+- $x^2 = 24 \implies x \in \{18, 32, 68, 82\}$
+
+Thus $x = 92880, y = 3199$
+
+## Birthday Paradox
+
+Probability that no boxes has $\geq 2$ balls
+
+- Number of ways to put balls $m$ balls into $n$ boxes is $n^m$
+- Number of ways to put balls into boxes such that no box has $\geq 2$ balls is $n(n-1)\cdots(n-m+1)$
+
+Thus Probability that no boxes has $\geq 2$ balls is
+
+$$P = \frac{n(n-1) \cdots (n-m+1)}{n^m} = 1(1 - \frac{1}{n})(1 - \frac{2}{n}) \cdots (1 - \frac{m-1}{n})$$
+
+Which is $\approx e^{-m^2/2n}$
+
+It's use is that we need $\approx n^{1/2}$ balls to put at least $2$ balls in each box. Thus probability that $2$ balls are in the same box is large
+
+## Pollard's $\rho$ Algorithm
+
+We want to factor $N$. We know that $p$ is a factor of $N$ and $p \leq N^{1/2}$. Idea is to find $x, y$ such that $x \equiv y \pmod{p}$
+
+- $\gcd(x-y, N)$ will yield a nontrivial factor of $N$ since $p$ divides both
+- Idea is to pick random $x_1 \in \{1, \ldots, N-1\}$ and generate $x_i = x_{i-1} * x_{i-1} + c \pmod{N}$
+- Idea is that $x_i = x_j$, then $x_{i + 1} = x_{j + a}$, so we find $k$ such that $x_k \equiv x_{2k}$
+
+```
+define f(x) = x * x + c
+
+x  = rand(1, N-1),  c = rand(1, N-1),   y = f(x)
+while TRUE:
+  x = f(x)
+  y = f(f(y))
+  d = gcd(x - y, N)
+  if d != 1 and d != N
+    break
+output(d)
+```
