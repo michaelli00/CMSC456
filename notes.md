@@ -569,3 +569,36 @@ while TRUE:
     break
 output(d)
 ```
+
+## Low e Attack on RSA
+
+### Chinese Remainder Theorem
+
+If $N_1, \ldots, N_l$ are relatively prime then there exists $0 \leq x < N_1 \cdots N_L$ such that
+
+$x \equiv x_1 \pmod{N_1}$
+
+$x \equiv x_2 \pmod{N_2}$
+
+$\cdots$
+
+$x \equiv x_2 \pmod{N_2}$
+
+### e Theorem
+
+Instead of $x_1, x_2, \ldots, x_n$, we can look at $m^e \pmod{N_i}$. Then find an $x$ such that $0 \leq x < N_1 \cdots N_L$
+
+Finally we have that $x$ is the $e$th power of $m$
+
+## Same $N$ Attack on RSA
+
+**Definition**: A set of numbers if **relatively prime** if no number divides all of them
+
+**Theorem**: If $a, b, c$ are rel prime, then there exists $x_1, x_2, x_3$ such that $ax_1 + bx_2 + cx_3 = 1$
+
+Analysis of generalization of $L$. Zelda sends $m$ to $A_1, \ldots, A_L$ and Eve sees $m^{e_i}$
+
+* $e_1, \ldots, e_L$ are rel prime so there exists $x_1, \ldots, x_L$ such that $\displaystyle \sum_{i = 1}^L e_ix_i = 1$
+* Eve finds such $x_1, \ldots, x_l$ and computes
+
+$$(m^{e_1})^{x_1} \times \cdots \times (m^{e_L})^{x_L} = m^{\sum_{i = 1}^L e_ix_i} \equiv m^1 \equiv m \pmod{N}$$
