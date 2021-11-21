@@ -602,3 +602,140 @@ Analysis of generalization of $L$. Zelda sends $m$ to $A_1, \ldots, A_L$ and Eve
 * Eve finds such $x_1, \ldots, x_l$ and computes
 
 $$(m^{e_1})^{x_1} \times \cdots \times (m^{e_L})^{x_L} = m^{\sum_{i = 1}^L e_ix_i} \equiv m^1 \equiv m \pmod{N}$$
+
+## Learn with Errors Private Key
+
+### Cipher Idea
+
+- Alice and Bob have a private key. Example $(170, 39, 3, 1)$
+- They also have a prime public key. Example $191$ 
+- If Alice picks $4$ random numbers - example $(40, 28, 111, 7)$ - and takes the dot product. Answer here is $19$
+
+    - If Alice wants to send $0$, she sends $((40, 28, 111, 7; 19)$
+    - If Alice wants to send $1$, she sends $((40, 28, 111, 7; 20)$
+
+- Bob receives the message and computes dot product
+
+    - If Bob's result is $19$, then $b = 0$
+    - If Bob's result is $20$, then $b = 1$
+
+Eve can crack this by using Known Plaintext Attack
+
+- Eve later finds out later that Alice's previous message of $(40, 28, 111, 7; 19)$ had $b = 0$
+
+    - So we have $40 k_1 + 28k_2 + 111 k_3 + 7k_4 \equiv 19 \pmod{191}$
+    - Repeating this for other messages cuts down search space
+
+### Generalized Cipher
+
+Let $e \in^r A$ mean that $e$ is picked uniformly randomly from the set $A$
+
+Let $\frac{p}{4}$ denote $\lfloor \frac{p}{4} \rfloor$ for $p$ odd
+
+Let $\vec{k}$ denote the key and $\vec{r}$ denote a random vector
+
+Let $\gamma$ be a parameter such that we choose $e$ from $\{-\gamma, \ldots, \gamma\}$
+
+&nbsp;
+
+Private key $\vec{k}$
+
+Public info $p, \gamma$
+
+1. Alice picks a random vector $\vec{r}$
+2. Alice computes $\vec{r} \cdot \vec{k} \equiv C \pmod{p}$ and chooses $e \in^r \{-\gamma, \ldots, \gamma\}$
+3. Let $D \equiv C + e + \frac{bp}{4}$
+4. To send $b$, Alice sends $(\vec{r}; D)$
+5. Bob computes $\vec{r} \cdot \vec{k} \equiv C$ 
+
+    - $D \approx C \implies b = 0$ (within $\gamma$)
+    - $D \approx C + \frac{p}{4} \implies b = 1$ (within $\gamma$)
+    - Otherwise Eve tampered the message
+
+&nbsp;
+
+Also need to pick $\gamma$ such that it works
+
+- If $b = 0$, Bob compares $C$ to $C + e$ ($e \in \{-\gamma, \ldots, \gamma$)
+- If $b = 1$, Bob compares $C$ to $C + e + \frac{p}{4}$ ($e \in \{-\gamma + \frac{p}{4}, \ldots, \gamma + \frac{p}{4}\}$)
+
+So we need these to intervals (with wrap around) to be disjoint
+
+Choosing $\gamma < \frac{p}{16}$ suffices since $2\gamma < \frac{p}{4}$ and $2\gamma + \frac{p}{4} < p$
+
+&nbsp;
+
+**Learning with Errors Problem**: given $p, \gamma$ and tuples of $(\vec{r}, D)$ and told that $\vec{r} \cdot \vec{k} - D \equiv e \in^r \{-\gamma, \ldots, \gamma\}$, how easily can you solve the equations?
+
+## Learn with Errors Public Key
+
+
+### Cipher Idea
+
+Idea is for only Alice to have the key vector $\vec{k}$ and have Alice publish several noisy equations that satifsfy $\vec{k}$. For $e_i \in^r \{-\gamma, \gamma\}$
+
+$$\vec{r} \cdot \vec{k} \sim C_1 + e_1$$
+
+$$\vec{s} \cdot \vec{k} \sim C_2 + e_2$$
+
+$$\ldots$$
+
+Taking the sum $(r_1 + s_1) x_1 + \cdots + (r_n + s_n) \sim C_1 + C_2 + e_1 + e_2$ so error in $\{-2\gamma, \ldots, 2\gamma\}$
+
+### Example
+
+Let $p = 4, n = 4, e \in^4 \{-1, 0, 1\}$
+
+Alice wants bob to be able to send $b \in \{0, 1\}$ and picks random key $\vec{k} = (1, 10, 21, 89)$
+
+Alice also picks 4 random $\vec{r}$s with $e_i$
+
+$(4, 9, 1, 89), e_1 = 1$
+
+$(9, 98, 9, 1), e_2 = -1$
+
+$(44, 55, 10, 8), e_2 = 0$
+
+$(9, 3, 11, 99), e_2 = 1$
+
+- **Note**: any sum of equations has $(1, 10, 21, 89)$ as an "answer"
+
+Alice broadcasts these $4$ equations
+
+To send bit $b = 0$, Bob picks 2 equations and adds them together
+
+- Eve sees the equations but doesn't know which equations were added together
+
+- Alice finds that $\vec{k}$ yields an answer close to the solution so $b = 0$
+
+To send bit $b=1$, Bob picks 2 equations, adds them together, and also adds $50$ to the solution
+
+- Alice finds that $\vec{k}$ yields an answer NOT close to the solution so $b = 1$
+
+### Generalized Cipher
+
+Public information: $p, \gamma,n, m$
+
+Alice wants Bob to be able to send $b \in \{0, 1\}$
+
+1. Alice picks a random $\vec{k}$ of length $n$
+
+2. Alice picks $m$ random $\vec{r}$, each with their own $e \in^r \{-\gamma, \ldots, \gamma\}$
+
+  - Let $D = \vec{r} \cdot \vec{k} + e$
+3. Alice broadcasts each $(\vec{r}; D)$
+
+  - **Note**: $\vec{k}$ satisfies noisy equations and any sum of them
+
+4. Bob wants to send bit $b$ and picks a random uniform set of noisy equations, adds them, and adds $bp/2$ to the solution. Let $D'$ be the sum of all $D$s in the selected equations
+
+    $s_1 x_1 + \cdots + s_nx_n \sim D' + bp/2$ if and only if $b = 0$
+5. Bob broadcasts $(\vec{s}; F = D' + bp/2)$
+
+6. Alice computes $\vec{s} \cdot \vec{k} - F$
+
+    - If small then $b = 0$
+    - If large then $b = 1$
+
+
+
