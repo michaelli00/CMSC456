@@ -737,5 +737,115 @@ Alice wants Bob to be able to send $b \in \{0, 1\}$
     - If small then $b = 0$
     - If large then $b = 1$
 
+## Psuedo Random
 
+No such that as a truly random bit string. Instead we pick a bit string uniformly on $\{0, 1\}^n$.
 
+  - Each string has probability of being chosen of $\frac{1}{2^n}$
+
+**Psuedorandom Generator (PRG)**: expands a short seed into a longer string that looks random. The question now becomes, if the result looks random
+
+### PRG Game
+
+Let $p$ be a polynomial and $G: \{0, 1\}^n \rightarrow \{0, 1\}^{p(n)}$ be computable in poly time
+
+1. Alice picks $x \in \{0, 1\}^n$ uniformly and computes $y = G(x) \in \{0, 1\}^{p(n)}$
+2. Alice picks $z \in \{0, 1\}^{p(n)}$ uniformly
+3. Alice gives $\{w_1, w_2\} = \{y, z\}$ to Eve ($z$ is either $w_1$ or $w_2$
+4. Eve outputs one of $\{w_1, w_2\}$ hoping it's $z$
+5. If Eve outputs $z$, she wings
+
+Can Eve win this game with probability $\geq 1/2$? Depends on how much Computational Power Eve has
+
+**Eve Strategy under Unlimited Computational Power**
+
+1. Eve gets $w_1, w_z$ as input (one of which is $z$)
+2. Eve creates the set $A = \{G(x) \mid x \in \{0, 1\}^n\}$. This takes exponential time
+3. If $w_1 \notin A$, then Eve outputs $w_1$ and wins
+4. If $w_2 \notin A$, then Eve outputs $w_2$ and wins
+5. If $w_1, w_2 \in A$, then Eve outputs $w_1$, though she might be wrong
+    - Probability of Eve losing is $\leq$ probability that $z \in A$.
+    - There are $2^{p(n)}$ that $z$ could be, of which $2^n$ are in $A$.
+    - Thus probability that Eve loses is $\leq \displaystyle \frac{2^n}{2^{p(n)}} < 1/2$
+
+  However, we restrict Eve to having only polynomial computing time
+
+### PRG Formal
+
+A function $f: Z^+ \rightarrow [0, 1]$ is **negligible** if for every polynomial $p$ and for large $n$, $f(n) < \frac{1}{p(n)}$
+
+  - **Example**: $f(n) = \frac{1}{2^n}$
+
+An algorithm is **Poly Prob Time (PPT)** if there is a randomized algorithm that halts it in poly time and has a negligible probability of error
+
+  - **Example**: Primality
+
+**Definition**: $F$ is a **PRG** if for all **PPT**, there is a negligible function $\epsilon(n)$ such that
+
+$$\Pr[\text{Eve Wins}] \leq \frac{1}{2} + \epsilon(n)$$
+
+### Candidate for PRG
+
+1. Input $b \in \{0, 1\}^n$
+2. Find $p$, the first safe prime $\geq b$
+3. Find $g$, the smallest generator of $Z_p^*$
+4. Compute $(g^1, g^2, \ldots, g^{n^2})$, all mod $p$. View these results as $n$-bit strings
+5. Let $b_i$ be the right most bit of $g^i$
+6. Output $b_1 b_2 \cdots b_{n^2}$
+
+### Psuedo One Time Pad
+
+Let $G$ be a PRG from $\{0, 1\}^n$ to $\{0, 1\}^{p(n)}$
+
+1. Alice generates an $n$-bit string $k$ with $n$ truly random bits
+2. Alice computes $G(k) = k'$, creating $p(n)$ psuedo-random bits
+3. Alice and Bob use $k'$ for their one-time pad
+
+## Stream Ciphers
+
+**Stream Cipher** is a recurrence that generates bits. Pair of efficient, deterministic algorithms (Init, GetBits) such that
+
+- Init does: Input a private seed $s$ (truly random) and outputs $y_0, y_1, \ldots, y_n$ for some $n$
+- GetBits does: Input $y_0, \ldots, y_m$ and Outputs the bit $y_{m+1}$
+
+These 2 functions can generate any desired number of output bits from an initial seed
+
+A stream cipher is considered secure if the output generated from a uniform seed is psuedorandom (formal definition is based on the psuedorandom game)
+
+### Linear Feedback Shift Registers
+
+Degree 3 LFSR uses
+
+- $+$ is $\mod{2}$
+- 3 constants: $c_0, c_1, c_2 \in \{0, 1\}$
+- Key 3 bits: $(y_0, y_1, y_2)$
+
+$$y_{t + 1} = c_2 y_{t - 3} + c_1 y_{t - 2} + c_0 y_{t - 1}$$
+
+- This recurrence is eventually periodic. For $n$-degree, max periodicity is $2^n - 1$
+
+Also LFSR is NOT SECURE
+
+- For degree $3$, we have $c_0, c_1, c_2$ unknown and $y_1, y_2, \ldots, y_6$ known. Then
+
+$y_4 = c_2 y_3 + c_1 y_2 + c_0 y_1$
+
+$y_5 = c_2 y_4 + c_1 y_3 + c_0 y_2$
+
+$y_6 = c_2 y_5 + c_1 y_4 + c_0 y_3$
+
+Thus $3$ linear equations and $3$ variables can be solved
+
+  - Takes $2n$ iterations to crack
+
+### Nonlinear Feedback Shift Registers (NFSR)
+
+Adds nonlinearity to prevent attacks
+
+Let $n$ be even and $+$ be under $\mod{2}$
+
+Initialize $x_1, x_2, x_3, x_4$. Then we have
+
+$$x_{n+1} = x_n x_{n-1} + x_{n-1}x_{n-2} + x_{n-3}x_{n-4}$$
+
+PAGE %$57$ CONTINUE
