@@ -203,9 +203,7 @@ Creating pure random bits is hard for One Time Pad. Instead we produce a string 
 
 Pick $M$ large and $A, B, x_0$ that are random looking. Then we can create a recurrence relation
 
-$$x_{i+1} = Ax_{i} + B \pmod{M}$$
-
-- **Note**: we need $\gcd(A, M) = 1$
+- $x_{i+1} = Ax_{i} + B \pmod{M} \quad \quad$ need $\gcd(A, M) = 1$
 
 ### Running Example
 
@@ -849,3 +847,117 @@ Initialize $x_1, x_2, x_3, x_4$. Then we have
 $$x_{n+1} = x_n x_{n-1} + x_{n-1}x_{n-2} + x_{n-3}x_{n-4}$$
 
 PAGE %$57$ CONTINUE
+
+## Threshold Secret Sharing
+
+Zelda has a secret $s \in \{0, 1\}^n$
+
+**(t, m)-secret sharing** is a way for Zelda to give strings to $A_1, \ldots, A_m$ such that 
+
+- If any $t$ get together, they can learn $s$
+- If any $< t$ get together, they cannot learn anything
+
+**Random String Approach**: ($(4, 4)$ case) Zelda generates random $r_1, r_2,r_3 \in \{0, 1\}^n$ and
+
+- Gives $A_1$ $s_1 = r_1$
+- Gives $A_2$ $s_2 = r_2$
+- Gives $A_3$ $s_3 = r_3$
+- Gives $A_4$ $s_4 = s \oplus r_1 \oplus r_2 \oplus r_3$
+
+$A_1, A_2, A_3, A_4$ can recover the secret by doing $s_1 \oplus s_2 \oplus s_3 \oplus s_4 = s$
+
+### Generalized (t,m)-Secret Sharing
+
+Given a secret $s \in \{0, 1\}^n$
+
+For each $t$-set of $A_1, \ldots, A_m$, create random strings so that they can recover the secret if they all get together.
+
+Note for $(m/2, m)$, $A_i$ gets about $\frac{2^m}{\sqrt{m}}$ strings.
+
+To reduce the number of strings, look below
+
+### Threshold Secret Sharing with Polynomials (t,m)
+
+We can imagine a secret will always be an element of $Z_p$ for prime $p$
+
+- $s = 20 \implies Z_{23}$
+- $s = 23 \implies Z_{23} \implies s = 0$
+
+Zelda wants to send a string to $A_1, \ldots, A_m$ such that
+
+- Any $t$ of $A_1, \ldots, A_m$ can find $s$
+- Any $< 1$ learn nothing
+
+1. $s \in Z_p$ and Zelda works under mod $p$
+2. Zelda generates random numbers $a_{t-1}, \ldots, a_1 \in Z_p$
+3. Zelda creates the polynomial $f(x) = a_{t-1}x^{t-1} + \cdots + a_1x + s$
+4. For $1 \leq i \leq m$, Zelda gives each $A_i$ $f(i)$ (all mod $p$)
+    - Any $t$ people have $t$ points from $f(x)$ and can solve for $s$
+    - Any $<t$ people don't have enough information to figure out $s$
+
+### Length of Shares
+
+For random-string method (domain $\{0, 1\}^n$), Zelda MUST send shares of length $|s|$
+
+**Example**: $(4,5)$ secret sharing scheme with Zelda sharing $s$ of length $7$.
+
+- There are $2^7 = 128$ possibilities for $s$
+- Consider $A_5$ gets a share of length $6$. We show that the scheme is NOT info-theoretic secure
+- Then $A_1, A_2, A_3$ can learn something
+
+    - Let CAND = $\emptyset$ be the set of Candidates for $s$
+    - For $x \in \{0, 1\}^6$ (go through all shares $A_5$ could have)
+    - However this reduces the search space since $2^ < 2^7$. Thus $A_1, A_2, A_3$ have eliminated many strings from being the secret $s$
+
+### Length of Shares under Computational Security
+
+Under info-theoretic security, length of shares must be $\geq |s|$
+
+However, we can assume that there is a hardness problem so we look for length of shares $\beta n$
+
+**General Problem**: Players $A_1, \ldots, A_m$ and secret $s$
+
+1. If $\geq t$ of them get together, they can find $s$
+2. If $< t$ og them get together, they cannot find $s$
+
+This can be generalized. Let $X$ (**access structure**) be the set of all subsets of $\{A_1, \ldots, A_m\}$ with $\geq t$ players
+
+1. If $Y \in X$ then players in $Y$ can find $s$
+2. if $Y \notin X$ then players in $Y$ cannot find $s$
+
+Secret sharing scheme is **ideal** if all shares come from the same domain as the secret.
+
+### OR Ideal Secret Sharing
+
+We want a group that can find the secret share $s$ if either
+
+- at least 2 of $A_1, A_2, A_3$ OR
+- at least 4 of $B_1, B_2, B_3, B_4, B_5, B_6, B_7$
+
+Zelda can does this by doing (2,3) secret sharing with $A_1, A_2, A_3$ and (4,7) secret sharing with $B_1, B_2, B_3, B_4, B_5, B_6, B_7$
+
+This notation can be simplified to $TH_A(t_1, m_1) \vee TH_B(t_2, m_2)$
+
+Can be generalized to $TH_A(t_1, m_1) \vee \cdots \vee TH_B(t_{26}, m_{26})$
+
+### AND Ideal Secret Sharing
+
+Similar to Disjoint Ideal Secret Sharing except now it is generalized to
+
+$TH_A(t_1, m_1) \wedge \cdots \wedge TH_B(t_{26}, m_{26})$
+
+1. Zelda has secret $s$, $|s| = n$
+2. Zelda generates random $r_1, \ldots, r_{25} \in \{0, 1\}^n$
+3. Zelda does $(t_1, m_1)$ secret sharing of $r_1$ with $A_i$'s
+4. $\ldots$
+5. Zelda does $(t_{25}, m_{25})$ secret sharing of $r_{25}$ with $Y_i$'s
+6. Zelda does $(t_{26}, m_{26})$ secret sharing of $r_1 \oplus \cdots \oplus r_{25} \oplus s$ with $Z_i$'s
+7. If $\geq t_1$ of $A_i$'s get together they can find $r_1$. Similar for $B_i, \ldots Y_i$. Finally, if $\geq t_{26}$ of $Z_i$'s get together they can find $r_1 \oplus \cdots \oplus r_{25} \oplus s$ so together, all groups can find $s$
+
+### General Theorem
+
+A **monotone formula** is a Boolean formula with no NOT signs. Using ideas from $TH$, we get
+
+**Theorem**: Let $X_1, \ldots, X_n$ each be a threshold $TH_A(t, m)$ but all using different players
+
+Let $F(X_1, \ldots, X_N)$ be a monotone Boolean formula where each $X_i$ appears only once. Then Zelda can do ideal secret sharing where only sets that satisfy $F(X_1, \ldots, X_N)$ can learn the secret
